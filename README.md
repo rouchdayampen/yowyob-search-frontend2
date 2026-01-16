@@ -1,36 +1,142 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🔍 Yowyob - Moteur de Recherche Local
 
-## Getting Started
+> **Un moteur de recherche intelligent qui connecte votre communauté locale**
 
-First, run the development server:
+Yowyob est une plateforme web moderne conçue pour faciliter la découverte de commerces, services et produits dans votre région. C'est un **projet académique** développé par des étudiants en 4e année de Génie Informatique.
+
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Node](https://img.shields.io/badge/node-18%2B-brightgreen.svg)
+
+## 📋 Table des matières
+
+- [Caractéristiques](#-caractéristiques)
+- [Stack Technologique](#-stack-technologique)
+- [Prérequis](#-prérequis)
+- [Installation](#-installation)
+- [Configuration](#-configuration)
+- [Démarrage](#-démarrage)
+- [Architecture](#-architecture)
+- [Équipe](#-équipe)
+
+## ✨ Caractéristiques
+
+- 🔎 **Recherche Avancée** - Filtrage par type, prix, distance et catégorie
+- 🗺️ **Localisation Géographique** - Recherche basée sur la proximité
+- 🌙 **Mode Sombre** - Interface adaptée pour tout environnement
+- 🔐 **Authentification JWT** - Sécurisation avec NextAuth.js
+- 📱 **Design Responsive** - Optimisé pour tous les appareils
+- ⚡ **Performance** - Built avec Next.js et React
+- 🎯 **Pagination** - Navigation fluide dans les résultats
+- 💾 **Cache Redis** - Optimisation des performances
+
+## 🛠️ Stack Technologique
+
+### Frontend
+- **Framework**: Next.js 13+ (App Router)
+- **Styling**: Tailwind CSS
+- **Auth**: NextAuth.js
+- **HTTP Client**: Custom HttpClient
+- **State Management**: React Hooks + Context API
+
+### Backend (Architecture Microservices)
+- **API Gateway**: Spring Cloud Gateway (Port 8080)
+- **Services**: Auth, Search, Listing, User, Geo (Ports 8081-8085)
+- **Database**: PostgreSQL, Redis
+- **Build**: Maven
+
+## 📦 Prérequis
+
+- Node.js >= 18.x
+- npm ou yarn
+- Git
+- Backend API Gateway (http://localhost:8080)
+
+## 🚀 Installation
+
+### 1. Cloner le repository
+
+```bash
+git clone <repository-url>
+cd yowyob-search-frontend
+```
+
+### 2. Installer les dépendances
+
+```bash
+npm install
+```
+
+### 3. Configuration des variables d'environnement
+
+Créer `.env.local`:
+
+```env
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your-secret-key-here
+```
+
+## 🎯 Démarrage
+
+### Mode Développement
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Accédez à [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Mode Production
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm run start
+```
 
-## Learn More
+## 🏗️ Architecture du Projet
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+├── app/                 # Pages (Next.js App Router)
+├── components/          # Composants réutilisables
+├── lib/                # API, Auth, Utils
+├── store/              # État global
+└── types/              # Types TypeScript
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📊 Endpoints API
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Endpoint | Méthode | Description |
+|----------|---------|-------------|
+| `/api/search` | GET | Recherche produits |
+| `/api/products/{id}` | GET | Détail produit |
+| `/api/auth/login` | POST | Connexion |
+| `/api/geo/distance` | GET | Distance géo |
 
-## Deploy on Vercel
+## 👥 Équipe
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Encadrants
+- **Dr Djotio Thomas** - Professeur / Responsable
+- **Dr Kutche** - Assistant / Encadrant Technique
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Développeurs (4e année Génie Informatique)
+- **Matteo Owona** - Lead Developer
+- **Rouchda Yampen** - Full Stack Developer
+- **Rolain Tchapet** - Backend Developer
+- **Heudep Brusly** - DevOps Engineer
+- **Freddy Ela Foe** - Frontend Developer
+- **Freddy Nzungang** - UI/UX Designer
+
+## 📄 Licence
+
+MIT License
+
+## 📞 Contact
+
+- **Email**: yowyob@example.com
+- **GitHub**: [yowyob-project](https://github.com/yowyob)
+
+---
+
+**Mise à jour**: 16 janvier 2026 | **Version**: 1.0.0
