@@ -8,6 +8,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { useSearchStore } from '@/store';
 
 interface SearchBarProps {
   defaultValue?: string;
@@ -26,47 +27,63 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 }) => {
   const [query, setQuery] = useState(defaultValue);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [historySuggestions, setHistorySuggestions] = useState<string[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { addToHistory, history } = useSearchStore();
 
-  // Debounced search
+  // Debounced search with history
   useEffect(() => {
-    if (!showSuggestions || query.length < 2) {
+    if (query.length < 1) {
       setSuggestions([]);
+      setHistorySuggestions([]);
       setShowDropdown(false);
       return;
     }
 
     setIsLoading(true);
     const timer = setTimeout(() => {
-      // Mock suggestions - Replace with API call
-      const mockSuggestions = [
-        'Ordinateurs portables',
-        'Téléphones Samsung',
-        'Vêtements femme',
-        'Restaurants Yaoundé',
-      ].filter(s => s.toLowerCase().includes(query.toLowerCase()));
+      // Filter history based on query
+      const filteredHistory = history
+        .filter(h => h.toLowerCase().includes(query.toLowerCase()))
+        .slice(0, 5);
 
-      setSuggestions(mockSuggestions);
-      setShowDropdown(mockSuggestions.length > 0);
+      setHistorySuggestions(filteredHistory);
+
+      // Mock suggestions - Replace with API call (only if showSuggestions is true)
+      if (showSuggestions && query.length >= 2) {
+        const mockSuggestions = [
+          'Ordinateurs portables',
+          'Téléphones Samsung',
+          'Vêtements femme',
+          'Restaurants Yaoundé',
+        ].filter(s => s.toLowerCase().includes(query.toLowerCase()));
+        setSuggestions(mockSuggestions);
+      } else {
+        setSuggestions([]);
+      }
+
+      setShowDropdown(filteredHistory.length > 0 || (showSuggestions && query.length >= 2));
       setIsLoading(false);
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [query, showSuggestions]);
+  }, [query, showSuggestions, history]);
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setQuery(suggestion);
+    addToHistory(suggestion);
+    onSearch(suggestion);
+    setShowDropdown(false);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
+      addToHistory(query.trim());
       onSearch(query.trim());
       setShowDropdown(false);
     }
-  };
-
-  const handleSuggestionClick = (suggestion: string) => {
-    setQuery(suggestion);
-    onSearch(suggestion);
-    setShowDropdown(false);
   };
 
   return (
@@ -93,7 +110,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           </div>
           <button
             type="submit"
-            className="btn-primary px-8 py-4 text-lg font-bold flex items-center gap-2 group"
+            className="px-8 py-4 text-lg font-bold flex items-center gap-2 group bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-2xl transition-colors"
           >
             Rechercher
             <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -104,11 +121,35 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       </form>
 
       {/* Suggestions Dropdown */}
-      {showDropdown && suggestions.length > 0 && (
+      {showDropdown && (historySuggestions.length > 0 || suggestions.length > 0) && (
         <div className="absolute top-full mt-2 w-full bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50 animate-slide-down">
+          {/* History Items */}
+          {historySuggestions.length > 0 && (
+            <>
+              {historySuggestions.map((historyItem, index) => (
+                <button
+                  key={`history-${index}`}
+                  onClick={() => handleSuggestionClick(historyItem)}
+                  className="w-full px-6 py-4 text-left hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-3 border-b border-gray-100 dark:border-gray-700"
+                >
+                  <svg className="w-5 h-5 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-gray-700 dark:text-gray-200">{historyItem}</span>
+                </button>
+              ))}
+              {suggestions.length > 0 && (
+                <div className="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900">
+                  Suggestions
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Regular Suggestions */}
           {suggestions.map((suggestion, index) => (
             <button
-              key={index}
+              key={`suggestion-${index}`}
               onClick={() => handleSuggestionClick(suggestion)}
               className="w-full px-6 py-4 text-left hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-3 border-b border-gray-100 dark:border-gray-700 last:border-0"
             >

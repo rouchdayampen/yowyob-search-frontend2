@@ -2,7 +2,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import clsx from 'clsx';
 
-export type SearchTab = 'all' | 'shop' | 'services' | 'products' | 'map';
+export type SearchTab = 'all' | 'shop' | 'services' | 'products';
 
 interface SearchTabsProps {
     activeTab: SearchTab;
@@ -20,7 +20,6 @@ export const SearchTabs: React.FC<SearchTabsProps> = ({
         { id: 'shop', label: 'SHOP' },
         { id: 'services', label: 'SERVICES' },
         { id: 'products', label: 'PRODUITS' },
-        { id: 'map', label: 'CARTE' },
     ];
 
     return (

@@ -7,7 +7,6 @@ import Link from 'next/link';
 import { HeaderAuthenticated } from '@/components/layout/header-authenticated';
 
 import { ConditionalLayout } from '@/components/layout/conditional-layout';
-import { SearchTabs, SearchTab } from '@/components/search/search-tabs';
 
 export default function HomePage() {
   const { data: session, status } = useSession();
@@ -29,18 +28,6 @@ export default function HomePage() {
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSearch();
-    }
-  };
-
-  const handleTabChange = (tab: SearchTab) => {
-    if (tab === 'map') {
-      router.push('/search?q=&type=all&tab=map');
-    } else if (tab === 'all') {
-      // Stay here or go to search all? 
-      // If we are on home, we are essentially on 'all' but without results yet.
-      // Let's just focus the search bar or do nothing if already here.
-    } else {
-      router.push(`/search?q=&type=${tab}`);
     }
   };
 
@@ -83,15 +70,6 @@ export default function HomePage() {
             </p>
 
             <div className="max-w-3xl mx-auto mb-8">
-              {/* Insert Tabs above search bar or integrate them? Screenshot usually has tabs ABOVE or BELOW. 
-                  Let's put them ABOVE for category selection, or BELOW for content type. 
-                  The user said "il y ai les différents onglets... dans all, nous pouvons lancer une recherche".
-                  This suggests the tabs are the primary navigation.
-               */}
-              <div className="flex justify-center mb-6">
-                <SearchTabs activeTab="all" onTabChange={handleTabChange} className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-1 rounded-xl border border-gray-200 dark:border-gray-700" />
-              </div>
-
               <div className="relative flex items-center bg-white dark:bg-gray-800 rounded-3xl shadow-2xl border-2 border-gray-200 dark:border-gray-700 p-2 hover:border-blue-400 dark:hover:border-blue-400 transition-all">
                 <input
                   type="text"

@@ -22,7 +22,7 @@ interface ResultCardProps {
       name: string;
       address: string;
     };
-    location: {
+    location?: {
       lat: number;
       lng: number;
     };
@@ -54,13 +54,13 @@ export const ResultCard: React.FC<ResultCardProps> = ({ item, onClick }) => {
 
   return (
     <div
-      className="cursor-pointer"
+      className="cursor-pointer h-full"
       onClick={() => onClick?.(item.id)}
     >
-      <Card className="hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white dark:bg-gray-800">
+      <Card className="hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white dark:bg-gray-800 h-full flex flex-col">
         {/* Image */}
         {item.images.length > 0 && (
-          <div className="relative h-48 w-full bg-gray-100 dark:bg-gray-700 rounded-2xl overflow-hidden mb-4">
+          <div className="relative h-48 w-full bg-gray-100 dark:bg-gray-700 rounded-2xl overflow-hidden mb-4 flex-shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={item.images[0]}
@@ -76,24 +76,27 @@ export const ResultCard: React.FC<ResultCardProps> = ({ item, onClick }) => {
         )}
 
         {/* Content */}
-        <div className="space-y-3">
+        <div className="space-y-3 flex-1 flex flex-col">
           <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 line-clamp-1">
             {item.name}
           </h3>
 
-          <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2">
+          <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-2 flex-shrink-0">
             {item.description}
           </p>
 
           {/* Price */}
           {item.price && (
-            <div className="text-2xl font-black gradient-text">
+            <div className="text-2xl font-black gradient-text flex-shrink-0">
               {formatPrice(item.price)}
             </div>
           )}
 
+          {/* Spacer to push shop info to bottom */}
+          <div className="flex-1"></div>
+
           {/* Shop Info */}
-          <div className="pt-3 border-t border-gray-100 dark:border-gray-700 space-y-1">
+          <div className="pt-3 border-t border-gray-100 dark:border-gray-700 space-y-1 flex-shrink-0">
             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -111,7 +114,7 @@ export const ResultCard: React.FC<ResultCardProps> = ({ item, onClick }) => {
 
           {/* Tags */}
           {item.tags && item.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 flex-shrink-0">
               {item.tags.slice(0, 3).map((tag, index) => (
                 <span
                   key={index}

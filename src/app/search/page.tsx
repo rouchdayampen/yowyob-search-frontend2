@@ -1,5 +1,5 @@
 /**
- * Search page with tabs and split view
+ * Search page with tabs and toggle map
  * @author Matteo Owona, Rouchda Yampen
  * @date 2024-12-07
  */
@@ -19,7 +19,6 @@ import { httpClient } from '@/lib/api/http-client';
 import { API_ENDPOINTS } from '@/lib/constants/api-endpoints';
 import { MOCK_RESULTS } from './mock-data';
 import { SearchTabs, SearchTab } from '@/components/search/search-tabs';
-import { ResultListItem } from '@/components/search/result-list-item';
 import { MapContainer } from '@/components/map/map-container';
 
 // Results interface matching frontend requirements with backend data
@@ -55,11 +54,12 @@ export default function SearchPage() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [showMap, setShowMap] = useState(false);
 
   // Sync query with URL
   useEffect(() => {
-    const q = searchParams.get('q');
-    if (q) setQuery(q);
+    const urlQuery = searchParams.get('q') || '';
+    setQuery(urlQuery);
   }, [searchParams]);
 
   // Fetch results
@@ -67,9 +67,10 @@ export default function SearchPage() {
     setIsLoading(true);
     try {
       // Build filters based on activeTab if needed
-      let typeFilter: string | undefined = activeTab === 'all' || activeTab === 'map' ? undefined : activeTab;
-      // map 'products' tab to 'product' type if needed, strict mapping might strictly require 'product'
+      let typeFilter: string | undefined = activeTab === 'all' ? undefined : activeTab;
+      // map 'products' tab to 'product' type, 'services' to 'service'
       if (typeFilter === 'products') typeFilter = 'product';
+      if (typeFilter === 'services') typeFilter = 'service';
 
       const params = new URLSearchParams();
       if (query) params.append('q', query);
@@ -90,12 +91,55 @@ export default function SearchPage() {
         }));
         setResults(mappedResults);
       } else {
-        // Fallback to mock
-        setResults(MOCK_RESULTS as unknown as SearchResult[]);
+        // Fallback to mock with filtering
+        let filteredMockResults = MOCK_RESULTS as unknown as SearchResult[];
+
+        // Apply type filter to mock results
+        if (typeFilter) {
+          filteredMockResults = filteredMockResults.filter(item => item.type === typeFilter);
+        }
+
+        // Apply search query filter if exists
+        if (query) {
+          const lowerQuery = query.toLowerCase();
+          filteredMockResults = filteredMockResults.filter(item =>
+            item.name.toLowerCase().includes(lowerQuery) ||
+            item.description.toLowerCase().includes(lowerQuery) ||
+            item.category.toLowerCase().includes(lowerQuery) ||
+            item.shop.name.toLowerCase().includes(lowerQuery)
+          );
+        }
+
+        setResults(filteredMockResults);
       }
     } catch (error) {
       console.error('Error fetching results:', error);
-      setResults(MOCK_RESULTS as unknown as SearchResult[]);
+
+      // Fallback to mock with filtering
+      let filteredMockResults = MOCK_RESULTS as unknown as SearchResult[];
+
+      // Build type filter
+      let typeFilter: string | undefined = activeTab === 'all' ? undefined : activeTab;
+      if (typeFilter === 'products') typeFilter = 'product';
+      if (typeFilter === 'services') typeFilter = 'service';
+
+      // Apply type filter
+      if (typeFilter) {
+        filteredMockResults = filteredMockResults.filter(item => item.type === typeFilter);
+      }
+
+      // Apply search query filter if exists
+      if (query) {
+        const lowerQuery = query.toLowerCase();
+        filteredMockResults = filteredMockResults.filter(item =>
+          item.name.toLowerCase().includes(lowerQuery) ||
+          item.description.toLowerCase().includes(lowerQuery) ||
+          item.category.toLowerCase().includes(lowerQuery) ||
+          item.shop.name.toLowerCase().includes(lowerQuery)
+        );
+      }
+
+      setResults(filteredMockResults);
     } finally {
       setIsLoading(false);
       setHasSearched(true);
@@ -112,121 +156,102 @@ export default function SearchPage() {
     router.push(`/search?q=${encodeURIComponent(newQuery)}`);
   };
 
-  const renderContent = () => {
-    if (isLoading) {
-      return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <CardSkeleton key={i} />
-          ))}
-        </div>
-      );
-    }
-
-    if (results.length === 0 && hasSearched) {
-      return (
-        <div className="text-center py-20">
-          <h3 className="text-xl text-gray-600">Aucun résultat trouvé pour &quot;{query}&quot;</h3>
-        </div>
-      );
-    }
-
-    if (activeTab === 'map') {
-      return (
-        <div className="h-[calc(100vh-200px)] w-full">
-          <MapContainer
-            markers={results.map(r => ({
-              id: r.id,
-              position: [r.location?.lat || 3.848, r.location?.lng || 11.5021],
-              title: r.name,
-              description: r.description
-            }))}
-            className="w-full h-full"
-          />
-        </div>
-      );
-    }
-
-    if (activeTab === 'all') {
-      return (
-        <div className="flex flex-col lg:flex-row h-full min-h-[600px]">
-          {/* List View Left */}
-          <div className="w-full lg:w-[60%] lg:overflow-y-auto lg:h-[calc(100vh-220px)] custom-scrollbar pr-2">
-            <div className="p-4 border-b border-gray-100">
-              <p className="text-gray-500">{results.length} results found</p>
-            </div>
-            <div>
-              {results.map(item => (
-                <ResultListItem
-                  key={item.id}
-                  item={item}
-                  onClick={() => router.push(`/products/${item.id}`)}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Map View Right */}
-          <div className="hidden lg:block w-[40%] pl-4 h-[calc(100vh-220px)] sticky top-0">
-            <MapContainer
-              markers={results.map(r => ({
-                id: r.id,
-                position: [r.location?.lat || 3.848, r.location?.lng || 11.5021],
-                title: r.name
-              }))}
-              className="w-full h-full rounded-xl"
-            />
-          </div>
-        </div>
-      );
-    }
-
-    // Grid View for Shop, Services, Products
-    return (
-      <div className="p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {results.map((item) => (
-            <ResultCard
-              key={item.id}
-              item={item}
-              onClick={(id) => router.push(`/products/${id}`)}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  };
-
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
+    <>
       {session ? (
         <HeaderAuthenticated userName={session.user?.name || undefined} />
       ) : (
         <HeaderPublic />
       )}
 
-      {/* Main Search Header Section */}
-      <div className="sticky top-0 z-30 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="max-w-3xl">
+      <div className="min-h-screen bg-white dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          {/* Search Bar */}
+          <div className="mb-8">
             <SearchBar
               defaultValue={query}
               onSearch={handleSearch}
-              showSuggestions={false}
-              className="shadow-none border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
+              showSuggestions={true}
             />
           </div>
-        </div>
 
-        <div className="max-w-7xl mx-auto px-4">
-          <SearchTabs activeTab={activeTab} onTabChange={setActiveTab} />
+          {/* Tabs */}
+          <div className="mb-6">
+            <SearchTabs
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+            />
+          </div>
+
+          {/* Toggle Map Button */}
+          <div className="mb-6">
+            <button
+              onClick={() => setShowMap(!showMap)}
+              className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl"
+            >
+              {showMap ? (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Retirer la carte
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                  </svg>
+                  Afficher sur la carte
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Results Section */}
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <CardSkeleton key={i} />
+              ))}
+            </div>
+          ) : results.length === 0 && hasSearched ? (
+            <div className="text-center py-20">
+              <h3 className="text-xl text-gray-600 dark:text-gray-400">Aucun résultat trouvé pour &quot;{query}&quot;</h3>
+            </div>
+          ) : showMap ? (
+            // Layout with map: 2 columns + map sidebar
+            <div className="flex flex-col lg:flex-row gap-6">
+              <div className="flex-1 overflow-y-auto max-h-[calc(100vh-300px)] pr-2">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {results.map((item) => (
+                    <ResultCard key={item.id} item={item} />
+                  ))}
+                </div>
+              </div>
+              <div className="w-full lg:w-[500px] xl:w-[600px] flex-shrink-0">
+                <div className="sticky top-24 h-[calc(100vh-200px)] rounded-3xl overflow-hidden shadow-2xl">
+                  <MapContainer
+                    markers={results.map(r => ({
+                      id: r.id,
+                      position: [r.location?.lat || 3.848, r.location?.lng || 11.5021],
+                      title: r.name,
+                      description: r.description
+                    }))}
+                    className="w-full h-full"
+                  />
+                </div>
+              </div>
+            </div>
+          ) : (
+            // Layout without map: 4 columns
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {results.map((item) => (
+                <ResultCard key={item.id} item={item} />
+              ))}
+            </div>
+          )}
         </div>
       </div>
-
-      <div className="flex-1 max-w-[1920px] mx-auto w-full">
-        {renderContent()}
-      </div>
-
-    </div>
+    </>
   );
 }

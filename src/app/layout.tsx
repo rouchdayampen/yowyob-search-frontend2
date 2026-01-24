@@ -18,6 +18,7 @@ export const metadata: Metadata = {
 };
 
 import { Footer } from '@/components/layout/footer';
+import { Sidebar } from '@/components/layout/sidebar';
 
 export default function RootLayout({
   children,
@@ -31,6 +32,7 @@ export default function RootLayout({
           <ThemeProvider>
             <QueryProvider>
               {children}
+              <Sidebar />
               <Footer />
             </QueryProvider>
           </ThemeProvider>
