@@ -124,6 +124,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
  * Register a new user via the backend API
  */
 export async function registerUser(email: string, password: string, name: string): Promise<{ success: boolean; error?: string; user?: any }> {
+  console.log('🚀 INSIDE registerUser - httpClient baseUrl:', (httpClient as any).baseUrl);
   try {
     const response = await httpClient.post<any>(API_ENDPOINTS.AUTH_REGISTER, {
       email,
