@@ -18,7 +18,7 @@ class HttpClient {
   constructor() {
     // Correction : Utiliser une valeur par défaut si la variable d'env n'est pas définie
     // On retire le /api final car les endpoints dans API_ENDPOINTS commencent déjà par /api
-    this.baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+    this.baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
     this.defaultHeaders = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
