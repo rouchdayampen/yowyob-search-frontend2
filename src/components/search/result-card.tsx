@@ -27,8 +27,9 @@ interface ResultCardProps {
       lng: number;
     };
     tags?: string[];
+    detailsUrl?: string;
   };
-  onClick?: (id: string) => void;
+  onClick?: (item: any) => void;
 }
 
 export const ResultCard: React.FC<ResultCardProps> = ({ item, onClick }) => {
@@ -54,10 +55,10 @@ export const ResultCard: React.FC<ResultCardProps> = ({ item, onClick }) => {
 
   return (
     <div
-      className="cursor-pointer h-full"
-      onClick={() => onClick?.(item.id)}
+      className="cursor-pointer h-full group"
+      onClick={() => onClick?.(item)}
     >
-      <Card className="hover:scale-[1.02] transition-all duration-300 overflow-hidden bg-white dark:bg-gray-800 h-full flex flex-col">
+      <Card className="hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 overflow-hidden bg-white dark:bg-gray-800 h-full flex flex-col border-gray-100 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-2xl">
         {/* Image */}
         {item.images.length > 0 && (
           <div className="relative h-48 w-full bg-gray-100 dark:bg-gray-700 rounded-2xl overflow-hidden mb-4 flex-shrink-0">
@@ -77,7 +78,7 @@ export const ResultCard: React.FC<ResultCardProps> = ({ item, onClick }) => {
 
         {/* Content */}
         <div className="space-y-3 flex-1 flex flex-col">
-          <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 line-clamp-1">
+          <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
             {item.name}
           </h3>
 

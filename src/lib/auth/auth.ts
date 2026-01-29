@@ -40,8 +40,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
           return null;
         } catch (error) {
-          console.error('❌ Erreur d\'authentification backend:', error);
-          console.log('⚠️ Backend inaccessible, tentative avec la base locale...');
+          // console.error('❌ Erreur d\'authentification backend:', error);
+          console.warn(`⚠️ Backend inaccessible (${(error as any).message}). Tentative avec la base locale...`);
 
           // Fallback: Tentative avec la base de données locale
           const localUser = verifyUser(credentials.email as string, credentials.password as string);

@@ -9,12 +9,14 @@
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useSearchStore } from '@/store';
+import { API_ENDPOINTS } from '@/lib/constants/api-endpoints';
 
 interface SearchBarProps {
   defaultValue?: string;
   placeholder?: string;
   showSuggestions?: boolean;
   onSearch: (query: string) => void;
+  onChange?: (query: string) => void;
   className?: string;
 }
 
@@ -23,6 +25,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   placeholder = 'Rechercher des produits, services, commerces...',
   showSuggestions = false,
   onSearch,
+  onChange,
   className,
 }) => {
   const [query, setQuery] = useState(defaultValue);
@@ -50,15 +53,28 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 
       setHistorySuggestions(filteredHistory);
 
-      // Mock suggestions - Replace with API call (only if showSuggestions is true)
+      setHistorySuggestions(filteredHistory);
+
+      // API access for autocomplete
       if (showSuggestions && query.length >= 2) {
-        const mockSuggestions = [
-          'Ordinateurs portables',
-          'Téléphones Samsung',
-          'Vêtements femme',
-          'Restaurants Yaoundé',
-        ].filter(s => s.toLowerCase().includes(query.toLowerCase()));
-        setSuggestions(mockSuggestions);
+        try {
+          const endpoint = `${API_ENDPOINTS.SEARCH_AUTOCOMPLETE}?q=${encodeURIComponent(query)}`;
+          // We use fetch directly or httpClient. Since we want an array of strings, let's use httpClient if possible
+          // But httpClient might expect success/data wrapper. Let's check api response (List<String>)
+          // Just use fetch for simplicity and to avoid type mismatch if httpClient expects specific envelope
+          // Or import httpClient and cast.
+          import('@/lib/api/http-client').then(async ({ httpClient }) => {
+            const results = await httpClient.get<string[]>(endpoint);
+            if (Array.isArray(results)) {
+              setSuggestions(results);
+            } else {
+              setSuggestions([]);
+            }
+          });
+        } catch (error) {
+          console.error("Autocomplete error", error);
+          setSuggestions([]);
+        }
       } else {
         setSuggestions([]);
       }
@@ -100,7 +116,10 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             <input
               type="text"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                if (onChange) onChange(e.target.value);
+              }}
               placeholder={placeholder}
               className="flex-1 py-4 bg-transparent outline-none text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 text-lg"
             />

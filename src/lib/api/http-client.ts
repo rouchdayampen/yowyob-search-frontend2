@@ -95,8 +95,8 @@ class HttpClient {
 
     const response = await fetch(url, {
       method: 'GET',
-      headers: this.buildHeaders(options?.headers),
       ...options,
+      headers: this.buildHeaders(options?.headers),
     });
 
     return this.handleResponse<T>(response);
@@ -109,9 +109,9 @@ class HttpClient {
 
     const response = await fetch(url, {
       method: 'POST',
+      ...options,
       headers: this.buildHeaders(options?.headers),
       body: data ? JSON.stringify(data) : undefined,
-      ...options,
     });
 
     return this.handleResponse<T>(response);
@@ -124,9 +124,9 @@ class HttpClient {
 
     const response = await fetch(url, {
       method: 'PUT',
+      ...options,
       headers: this.buildHeaders(options?.headers),
       body: data ? JSON.stringify(data) : undefined,
-      ...options,
     });
 
     return this.handleResponse<T>(response);
@@ -139,8 +139,8 @@ class HttpClient {
 
     const response = await fetch(url, {
       method: 'DELETE',
-      headers: this.buildHeaders(options?.headers),
       ...options,
+      headers: this.buildHeaders(options?.headers),
     });
 
     return this.handleResponse<T>(response);
@@ -154,9 +154,9 @@ class HttpClient {
 
     const response = await fetch(url, {
       method,
+      ...options,
       headers: this.buildHeaders(options?.headers),
       body: data ? JSON.stringify(data) : undefined,
-      ...options,
     });
 
     return this.handleResponse<T>(response);

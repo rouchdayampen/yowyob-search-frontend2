@@ -1,5 +1,5 @@
 
-import { SearchResult } from './page';
+import { SearchResult } from '@/types/search';
 
 export const MOCK_RESULTS: SearchResult[] = [
     // PRODUCTS (Téléphones, Nourriture, etc.)

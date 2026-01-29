@@ -1,50 +1,24 @@
-/**
- * Search page with tabs and toggle map
- * @author Matteo Owona, Rouchda Yampen
- * @date 2024-12-07
- */
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { SearchBar } from '@/components/search/search-bar';
-import { ResultCard } from '@/components/search/result-card';
+import { ResultListItem } from '@/components/search/result-list-item';
 import { CardSkeleton } from '@/components/ui/skeleton';
 import { HeaderPublic } from '@/components/layout/header-public';
 import { HeaderAuthenticated } from '@/components/layout/header-authenticated';
+
+import { toast } from 'sonner';
 
 import { httpClient } from '@/lib/api/http-client';
 import { API_ENDPOINTS } from '@/lib/constants/api-endpoints';
 import { MOCK_RESULTS } from './mock-data';
 import { SearchTabs, SearchTab } from '@/components/search/search-tabs';
 import { MapContainer } from '@/components/map/map-container';
+import { SearchResult } from '@/types/search';
 
-// Results interface matching frontend requirements with backend data
-export interface SearchResult {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  type: 'product' | 'service' | 'shop';
-  category: string;
-  city: string;
-  rating: number;
-  // UI specific fields that might be missing from backend
-  images: string[];
-  shop: {
-    name: string;
-    address: string;
-  };
-  location: {
-    lat: number;
-    lng: number;
-  };
-  tags: string[];
-}
-
-export default function SearchPage() {
+function SearchContent() {
   const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -55,6 +29,8 @@ export default function SearchPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [showMap, setShowMap] = useState(false);
+
+  const accessToken = (session as any)?.user?.accessToken;
 
   // Sync query with URL
   useEffect(() => {
@@ -77,13 +53,19 @@ export default function SearchPage() {
       if (typeFilter) params.append('type', typeFilter);
 
       const endpoint = `${API_ENDPOINTS.SEARCH}?${params.toString()}`;
+
+      const headers: Record<string, string> = {};
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+      }
+
       // Simulate API delay or fetch
-      const response = await httpClient.get<any>(endpoint);
+      const response = await httpClient.get<any>(endpoint, { headers });
 
       if (response && response.success) {
         let mappedResults = (response.results || []).map((item: any) => ({
           ...item,
-          type: (item.type?.toLowerCase() === 'listing' ? 'product' : item.type?.toLowerCase()) || 'product',
+          type: (item.type?.toLowerCase() === 'listing' ? 'product' : (item.type?.toLowerCase() === 'user' ? 'shop' : item.type?.toLowerCase())) || 'product',
           images: item.images || ['https://images.unsplash.com/photo-1586769852836-bc069f19e1b6?w=400'], // Default image
           shop: item.shop || { name: 'Commerçant local', address: item.city || 'Yaoundé' },
           location: item.location || { lat: 3.8480, lng: 11.5021 },
@@ -146,14 +128,31 @@ export default function SearchPage() {
     }
   };
 
+  // Debounced search function
   useEffect(() => {
-    fetchResults();
+    const timer = setTimeout(() => {
+      fetchResults();
+    }, 300); // 300ms delay for live search
+
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, activeTab]);
 
   const handleSearch = (newQuery: string) => {
     setQuery(newQuery);
-    router.push(`/search?q=${encodeURIComponent(newQuery)}`);
+  };
+
+  const handleResultClick = (item: SearchResult) => {
+    if (item.detailsUrl) {
+      if (item.detailsUrl.startsWith('http')) {
+        window.open(item.detailsUrl, '_blank', 'noopener,noreferrer');
+        return;
+      }
+      router.push(item.detailsUrl);
+    } else {
+      // Default fallback if no URL provided
+      router.push(`/search/${item.id}`);
+    }
   };
 
   return (
@@ -171,6 +170,7 @@ export default function SearchPage() {
             <SearchBar
               defaultValue={query}
               onSearch={handleSearch}
+              onChange={(val) => setQuery(val)}
               showSuggestions={true}
             />
           </div>
@@ -214,7 +214,7 @@ export default function SearchPage() {
                 <CardSkeleton key={i} />
               ))}
             </div>
-          ) : results.length === 0 && hasSearched ? (
+          ) : results.length === 0 && query.trim() !== '' ? (
             <div className="text-center py-20">
               <h3 className="text-xl text-gray-600 dark:text-gray-400">Aucun résultat trouvé pour &quot;{query}&quot;</h3>
             </div>
@@ -222,9 +222,9 @@ export default function SearchPage() {
             // Layout with map: 2 columns + map sidebar
             <div className="flex flex-col lg:flex-row gap-6">
               <div className="flex-1 overflow-y-auto max-h-[calc(100vh-300px)] pr-2">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="flex flex-col gap-2">
                   {results.map((item) => (
-                    <ResultCard key={item.id} item={item} />
+                    <ResultListItem key={item.id} item={item} onClick={handleResultClick} />
                   ))}
                 </div>
               </div>
@@ -244,14 +244,26 @@ export default function SearchPage() {
             </div>
           ) : (
             // Layout without map: 4 columns
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="flex flex-col gap-2 max-w-4xl">
               {results.map((item) => (
-                <ResultCard key={item.id} item={item} />
+                <ResultListItem key={item.id} item={item} onClick={handleResultClick} />
               ))}
             </div>
           )}
         </div>
       </div>
     </>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    }>
+      <SearchContent />
+    </Suspense>
   );
 }
