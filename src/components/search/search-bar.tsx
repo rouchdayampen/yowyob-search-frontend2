@@ -33,6 +33,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const [historySuggestions, setHistorySuggestions] = useState<string[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchSubmitted, setSearchSubmitted] = useState(false);
   const { addToHistory, history } = useSearchStore();
 
   // Debounced search with history
@@ -79,16 +80,17 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         setSuggestions([]);
       }
 
-      setShowDropdown(filteredHistory.length > 0 || (showSuggestions && query.length >= 2));
+      setShowDropdown(!searchSubmitted && (filteredHistory.length > 0 || (showSuggestions && query.length >= 2)));
       setIsLoading(false);
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [query, showSuggestions, history]);
+  }, [query, showSuggestions, history, searchSubmitted]);
 
   const handleSuggestionClick = (suggestion: string) => {
     setQuery(suggestion);
     addToHistory(suggestion);
+    setSearchSubmitted(true);
     onSearch(suggestion);
     setShowDropdown(false);
   };
@@ -97,6 +99,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     e.preventDefault();
     if (query.trim()) {
       addToHistory(query.trim());
+      setSearchSubmitted(true);
       onSearch(query.trim());
       setShowDropdown(false);
     }
@@ -118,6 +121,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
               value={query}
               onChange={(e) => {
                 setQuery(e.target.value);
+                setSearchSubmitted(false); // Reset when user types again
                 if (onChange) onChange(e.target.value);
               }}
               placeholder={placeholder}
