@@ -51,7 +51,7 @@ function SearchContent() {
       if (typeFilter === 'services') typeFilter = 'service';
 
       // Check if query contains proximity keywords
-      const proximityKeywords = ['près de moi', 'proche', 'proximité', 'autour de moi', 'near me'];
+      const proximityKeywords = ['près de moi', 'proche', 'proximité', 'autour de moi', 'near me', 'près de chez moi', 'pres de moi', 'pres de chez moi', 'pas loin'];
       const isProximitySearch = proximityKeywords.some(keyword => 
         query.toLowerCase().includes(keyword)
       );
