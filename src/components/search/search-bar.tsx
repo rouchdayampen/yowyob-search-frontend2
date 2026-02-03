@@ -33,7 +33,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const [historySuggestions, setHistorySuggestions] = useState<string[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [searchSubmitted, setSearchSubmitted] = useState(false);
+  const [searchSubmitted, setSearchSubmitted] = useState(!!defaultValue);
   const [isFocused, setIsFocused] = useState(false);
   const { addToHistory, history } = useSearchStore();
 
@@ -140,7 +140,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                 setSearchSubmitted(false); // Reset when user types again
                 if (onChange) onChange(e.target.value);
               }}
-              placeholder="Rechercher..."
+              placeholder="Rechercher sur YowYob..."
               autoComplete="on"
               className="flex-1 py-4 bg-transparent outline-none text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 text-lg"
             />
