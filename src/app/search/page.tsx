@@ -147,7 +147,7 @@ function SearchContent() {
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchResults();
-    }, 300); // 300ms delay for live search
+    }, 800); // 800ms delay to reduce API calls (Bonsai.io 429 fix)
 
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
