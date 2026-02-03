@@ -34,10 +34,16 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const [showDropdown, setShowDropdown] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [searchSubmitted, setSearchSubmitted] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const { addToHistory, history } = useSearchStore();
 
   // Debounced search with history
   useEffect(() => {
+    // Only show results if focused
+    if (!isFocused && !showDropdown) {
+        return;
+    }
+
     if (query.length < 1) {
       setSuggestions([]);
       setHistorySuggestions([]);
@@ -51,8 +57,6 @@ export const SearchBar: React.FC<SearchBarProps> = ({
       const filteredHistory = history
         .filter(h => h.toLowerCase().includes(query.toLowerCase()))
         .slice(0, 5);
-
-      setHistorySuggestions(filteredHistory);
 
       setHistorySuggestions(filteredHistory);
 
@@ -80,12 +84,13 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         setSuggestions([]);
       }
 
-      setShowDropdown(!searchSubmitted && (filteredHistory.length > 0 || (showSuggestions && query.length >= 2)));
+      // Only show dropdown if focused AND has results AND not submitted
+      setShowDropdown(isFocused && !searchSubmitted && (filteredHistory.length > 0 || (showSuggestions && query.length >= 2)));
       setIsLoading(false);
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [query, showSuggestions, history, searchSubmitted]);
+  }, [query, showSuggestions, history, searchSubmitted, isFocused]);
 
   const handleSuggestionClick = (suggestion: string) => {
     setQuery(suggestion);
@@ -119,6 +124,17 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             <input
               type="text"
               value={query}
+              onFocus={() => {
+                setIsFocused(true);
+                setSearchSubmitted(false); // Enable dropdown on focus
+              }}
+              onBlur={() => {
+                // Delay hiding locally to allow clicks on dropdown items
+                setTimeout(() => {
+                    setIsFocused(false);
+                    setShowDropdown(false);
+                }, 200);
+              }}
               onChange={(e) => {
                 setQuery(e.target.value);
                 setSearchSubmitted(false); // Reset when user types again
