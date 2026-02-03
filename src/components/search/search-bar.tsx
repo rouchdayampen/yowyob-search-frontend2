@@ -140,7 +140,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                 setSearchSubmitted(false); // Reset when user types again
                 if (onChange) onChange(e.target.value);
               }}
-              placeholder={placeholder}
+              placeholder="Rechercher..."
+              autoComplete="off"
               className="flex-1 py-4 bg-transparent outline-none text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 text-lg"
             />
             {isLoading && (
