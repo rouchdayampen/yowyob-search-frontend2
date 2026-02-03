@@ -8,6 +8,7 @@ import { ResultListItem } from '@/components/search/result-list-item';
 import { CardSkeleton } from '@/components/ui/skeleton';
 import { HeaderPublic } from '@/components/layout/header-public';
 import { HeaderAuthenticated } from '@/components/layout/header-authenticated';
+import { useClientIp } from '@/hooks/useClientIp';
 
 import { toast } from 'sonner';
 
@@ -22,6 +23,7 @@ function SearchContent() {
   const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { ip, loading: ipLoading } = useClientIp();
 
   const [query, setQuery] = useState(searchParams.get('q') || '');
   const [activeTab, setActiveTab] = useState<SearchTab>('all');
@@ -48,11 +50,24 @@ function SearchContent() {
       if (typeFilter === 'products') typeFilter = 'product';
       if (typeFilter === 'services') typeFilter = 'service';
 
+      // Check if query contains proximity keywords
+      const proximityKeywords = ['près de moi', 'proche', 'proximité', 'autour de moi', 'near me'];
+      const isProximitySearch = proximityKeywords.some(keyword => 
+        query.toLowerCase().includes(keyword)
+      );
+
       const params = new URLSearchParams();
       if (query) params.append('q', query);
       if (typeFilter) params.append('type', typeFilter);
-
-      const endpoint = `${API_ENDPOINTS.SEARCH}?${params.toString()}`;
+      
+      // Use near-me endpoint if proximity search and IP is available
+      let endpoint: string;
+      if (isProximitySearch && ip) {
+        params.append('ip', ip);
+        endpoint = `${API_ENDPOINTS.SEARCH}/near-me?${params.toString()}`;
+      } else {
+        endpoint = `${API_ENDPOINTS.SEARCH}?${params.toString()}`;
+      }
 
       const headers: Record<string, string> = {};
       if (accessToken) {
